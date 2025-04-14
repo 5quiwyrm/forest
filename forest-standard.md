@@ -48,6 +48,9 @@ To push values onto the stack, simply write the value as a token.
     Duplicate entries are not allowed.
   - Note that table declarations must have an even number of values in them.
 
+All values can be compared with =.
+All values can be duplicated with dup, and dropped with drop.
+
 ## ints
 
 Ints support the basic arithmetic operations like + - * /.
@@ -59,6 +62,7 @@ Note that / is floor division.
 Strings can be appended to each other by using the <> function.
 Indexing into a string uses the same syntax as indexing into a table.
 Strings are zero indexed. (no u lua)
+Strings can be printed using print.
 
 ## tables
 
@@ -76,15 +80,15 @@ wrapped in "{" and "}".
 
 ## Conditions
 All conditions take the form of:
-`if ... end ...`
-Note that there doesn't necessarily have to be anything in `if end`.
-If the top-most value on the stack is not nil, then the code in `if` and `end`
+`if ... ifend ...`
+Note that there doesn't necessarily have to be anything in `if ifend`.
+If the top-most value on the stack is not nil, then the code in `if` and `ifend`
 is executed, else, it is not.
 
 The `and` `or` and `not` functions do what you would expect them to.
 
 ## Loops
-There is only one kind of loop in Forest, being the `loop end` loop.
-Nested `loop` loops are allowed, and loops are terminated by `end`.
-The `break` keyword can be used in a loop to skip until the matching `end`.
+There is only one kind of loop in Forest, being the `loop loopend` loop.
+Nested `loop` loops are allowed, and loops are terminated by `loopend`.
+The `break` keyword can be used in a loop to skip until the matching `loopend`.
 
