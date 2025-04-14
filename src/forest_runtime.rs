@@ -1,11 +1,17 @@
 use std::fmt;
 
+#[derive(PartialEq, Clone)]
+struct TablePair {
+    key: ForestValue,
+    value: ForestValue,
+}
+
 #[derive(Clone, PartialEq)]
 pub enum ForestValue {
     Nil,
     Int(i64),
     String(String),
-    Table(Vec<(ForestValue, ForestValue)>),
+    Table(Vec<TablePair>),
 }
 
 impl fmt::Display for ForestValue {
@@ -17,8 +23,8 @@ impl fmt::Display for ForestValue {
             ForestValue::Table(t) => {
                 let mut ret = String::new();
                 ret.push('{');
-                for (key, val) in t {
-                    ret.push_str(format!("{} {} ", key, val).as_str());
+                for TablePair { key, value } in t {
+                    ret.push_str(format!("{} {} ", key, value).as_str());
                 }
                 ret.pop();
                 ret.push('}');
@@ -282,10 +288,13 @@ impl ForestRuntime {
                     if let ForestValue::Table(t) = forest_table {
                         self.stack.push(
                             t.iter()
-                                .filter(|s| s.0 == key)
+                                .filter(|s| s.key == key)
                                 .nth(0)
-                                .unwrap_or(&(ForestValue::Nil, ForestValue::Nil))
-                                .1
+                                .unwrap_or(&TablePair {
+                                    key: ForestValue::Nil,
+                                    value: ForestValue::Nil,
+                                })
+                                .value
                                 .clone(),
                         );
                         self.programidx += 1;
@@ -302,7 +311,7 @@ impl ForestRuntime {
                 if self.stack.len() < 3 {
                     Err(ForestError::Underflow)
                 } else {
-                    let val = self.stack.pop().unwrap();
+                    let value = self.stack.pop().unwrap();
                     let key = self.stack.pop().unwrap();
                     if key == ForestValue::Nil {
                         return Err(ForestError::TypeMismatch(key, ForestValue::Nil));
@@ -310,7 +319,7 @@ impl ForestRuntime {
                     let table = self.stack.pop().unwrap();
                     if let ForestValue::Table(t) = table {
                         let mut tt = t;
-                        tt.push((key, val));
+                        tt.push(TablePair { key, value });
                         self.stack.push(ForestValue::Table(tt));
                     } else {
                         return Err(ForestError::TypeMismatch(table, ForestValue::Table(vec![])));
@@ -328,7 +337,10 @@ impl ForestRuntime {
                         self.stack.push(ForestValue::Table(
                             t.iter()
                                 .enumerate()
-                                .map(|(i, s)| (ForestValue::Int(i as i64), s.1.clone()))
+                                .map(|(i, s)| TablePair {
+                                    key: ForestValue::Int(i as i64),
+                                    value: s.value.clone(),
+                                })
                                 .collect(),
                         ));
                         self.programidx += 1;
