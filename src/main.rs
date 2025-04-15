@@ -43,3 +43,44 @@ fn main() {
     }
     // println!("Hello, world!");
 }
+
+#[test]
+fn forestloops() {
+    let mut runtime = ForestRuntime::new(&[
+        ForestInstruction::Push(ForestValue::Int(10)),
+        ForestInstruction::Loop,
+        ForestInstruction::Duplicate,
+        ForestInstruction::Print,
+        ForestInstruction::Push(ForestValue::String("\n".to_string())),
+        ForestInstruction::Print,
+        ForestInstruction::Push(ForestValue::Int(1)),
+        ForestInstruction::Subtract,
+        ForestInstruction::Duplicate,
+        ForestInstruction::Push(ForestValue::Int(0)),
+        ForestInstruction::Eq,
+        ForestInstruction::If,
+        ForestInstruction::Exit,
+        ForestInstruction::IfEnd,
+        ForestInstruction::Drop,
+        ForestInstruction::LoopEnd,
+        ForestInstruction::Exit,
+    ]);
+    loop {
+        // match runtime.dump() {
+        //     Ok(_) => {}
+        //     Err(_) => break,
+        // }
+        match runtime.step() {
+            Ok(_) => {}
+            Err(e) => {
+                match e {
+                    ForestError::Halt => {}
+                    _ => {
+                        eprintln!("{}", e);
+                    }
+                };
+                break;
+            }
+        };
+    }
+}

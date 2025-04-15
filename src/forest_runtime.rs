@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(PartialEq, Clone)]
-struct TablePair {
+pub struct TablePair {
     key: ForestValue,
     value: ForestValue,
 }
@@ -143,6 +143,7 @@ impl ForestRuntime {
     }
 
     pub fn step(&mut self) -> Result<(), ForestError> {
+        let mut inst: ForestInstruction;
         if let Some(mut inst) = self.program.pop() {
             match inst {
                 ForestInstruction::Push(v) => {
@@ -432,11 +433,6 @@ impl ForestRuntime {
                                 return Err(ForestError::EndedWithoutHalting);
                             }
                         }
-                    } else {
-                        inst = match self.program.pop() {
-                            Some(s) => s,
-                            None => return Err(ForestError::EndedWithoutHalting),
-                        }
                     }
                     Ok(())
                 }
@@ -447,7 +443,9 @@ impl ForestRuntime {
                 }
                 ForestInstruction::LoopEnd => {
                     if let Some(a) = self.jumplist.pop() {
-                        self.program = a;
+                        let mut p = a;
+                        p.push(ForestInstruction::Loop);
+                        self.program = p;
                         Ok(())
                     } else {
                         Err(ForestError::UnbalancedLoopEnd)
@@ -482,12 +480,13 @@ impl ForestRuntime {
     }
 
     pub fn dump(&self) -> Result<(), ForestDumpError> {
-        println!("Stack: ");
+        println!("\n\n\nStack: ");
         for val in &self.stack {
             println!("  {}", val);
         }
         let inst = &self.program[self.program.len() - 1];
         println!("Current instruction: {}", inst);
+        println!("Jumplists: {}", self.jumplist.len());
         Ok(())
     }
 }
