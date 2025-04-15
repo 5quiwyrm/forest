@@ -32,3 +32,45 @@ fn loops() {
     ]);
     execute_runtime!(runtime, false);
 }
+
+#[test]
+fn basicwords() {
+    use forest_runtime::ForestInstruction as fi;
+    use forest_runtime::ForestValue as fv;
+    let mut runtime = ForestRuntime::new(&[
+        fi::MakeWord("inc".to_string()),
+        fi::Push(fv::Int(1)),
+        fi::Add,
+        fi::EndWord,
+        fi::Push(fv::Int(1)),
+        fi::InvokeWord("inc".to_string()),
+        fi::Print,
+        fi::Exit,
+    ]);
+    execute_runtime!(runtime, false);
+}
+
+#[test]
+fn branchedword() {
+    use forest_runtime::ForestInstruction as fi;
+    use forest_runtime::ForestValue as fv;
+    let mut runtime = ForestRuntime::new(&[
+        fi::MakeWord("inc".to_string()),
+        fi::Push(fv::Int(1)),
+        fi::Add,
+        fi::EndWord,
+        fi::Push(fv::Int(1)), // sabotage or nah
+        fi::If,
+        /**/ fi::MakeWord("inc".to_string()),
+        /**/ fi::Push(fv::Int(0)),
+        /**/ fi::Add,
+        /**/ fi::EndWord,
+        fi::IfEnd,
+        fi::Drop,
+        fi::Push(fv::Int(1)),
+        fi::InvokeWord("inc".to_string()),
+        fi::Print,
+        fi::Exit,
+    ]);
+    execute_runtime!(runtime, false);
+}

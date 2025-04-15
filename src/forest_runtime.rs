@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 
 #[derive(PartialEq, Clone)]
@@ -34,6 +35,7 @@ impl fmt::Display for ForestValue {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub enum ForestInstruction {
     Push(ForestValue),
@@ -58,7 +60,7 @@ pub enum ForestInstruction {
     Loop,
     LoopEnd,
     Break,
-    MakeWord,
+    MakeWord(String),
     EndWord,
     InvokeWord(String),
     Exit,
@@ -89,7 +91,7 @@ impl fmt::Display for ForestInstruction {
             Self::Loop => write!(f, "Loop"),
             Self::LoopEnd => write!(f, "LoopEnd"),
             Self::Break => write!(f, "Break"),
-            Self::MakeWord => write!(f, "MakeWord"),
+            Self::MakeWord(w) => write!(f, "MakeWord {}", w),
             Self::EndWord => write!(f, "EndWord"),
             Self::InvokeWord(w) => write!(f, "InvokeWord {}", w),
             Self::Exit => write!(f, "Exit"),
@@ -97,6 +99,7 @@ impl fmt::Display for ForestInstruction {
     }
 }
 
+#[allow(dead_code)]
 pub enum ForestError {
     Halt,
     Underflow,
@@ -104,6 +107,8 @@ pub enum ForestError {
     UnbalancedIfEnd,
     UnbalancedLoopEnd,
     EndedWithoutHalting,
+    UnbalancedWordEnd,
+    UseOfUndeclaredWord(String),
     Unimplemented(String),
 }
 
@@ -116,6 +121,8 @@ impl fmt::Display for ForestError {
             Self::UnbalancedIfEnd => write!(f, "Unbalanced IfEnd!"),
             Self::UnbalancedLoopEnd => write!(f, "Unbalanced LoopEnd!"),
             Self::EndedWithoutHalting => write!(f, "Program ended without halting!"),
+            Self::UnbalancedWordEnd => write!(f, "Unbalanced WordEnd!"),
+            Self::UseOfUndeclaredWord(n) => write!(f, "Use of undeclared word {}!", n),
             Self::Unimplemented(feature) => write!(f, "{} is not implemented yet!", feature),
         }
     }
@@ -125,8 +132,10 @@ pub struct ForestRuntime {
     stack: Vec<ForestValue>,
     program: Vec<ForestInstruction>,
     jumplist: Vec<Vec<ForestInstruction>>,
+    wordlist: HashMap<String, Vec<ForestInstruction>>,
 }
 
+#[allow(dead_code)]
 pub enum ForestDumpError {
     ProgramidxOOB,
 }
@@ -139,12 +148,14 @@ impl ForestRuntime {
             stack: vec![],
             program: revprogram,
             jumplist: vec![],
+            wordlist: HashMap::new(),
         }
     }
 
     pub fn step(&mut self) -> Result<(), ForestError> {
+        #[allow(unused_variables)]
         let mut inst: ForestInstruction;
-        if let Some(mut inst) = self.program.pop() {
+        if let Some(inst) = self.program.pop() {
             match inst {
                 ForestInstruction::Push(v) => {
                     self.stack.push(v.clone());
@@ -470,9 +481,45 @@ impl ForestRuntime {
                     }
                     Ok(())
                 }
-                _ => Err(ForestError::Unimplemented(
-                    "Variant is not implemented yet!".to_string(),
-                )),
+                ForestInstruction::MakeWord(name) => {
+                    let mut instructions: Vec<ForestInstruction> = Vec::new();
+                    let mut layers = 1;
+                    'read: loop {
+                        if let Some(inst) = self.program.pop() {
+                            match inst {
+                                ForestInstruction::MakeWord(_) => {
+                                    layers += 1;
+                                }
+                                ForestInstruction::EndWord => {
+                                    layers -= 1;
+                                    if layers == 0 {
+                                        break 'read;
+                                    }
+                                }
+                                _ => {}
+                            }
+                            instructions.push(inst);
+                        } else {
+                            return Err(ForestError::UnbalancedLoopEnd);
+                        }
+                    }
+                    self.wordlist.insert(name, instructions);
+                    Ok(())
+                }
+                ForestInstruction::EndWord => Ok(()),
+                ForestInstruction::InvokeWord(name) => {
+                    let mut instrs = match self.wordlist.get(&name) {
+                        Some(v) => v.clone(),
+                        None => {
+                            return Err(ForestError::UseOfUndeclaredWord(name));
+                        }
+                    };
+                    instrs.reverse();
+                    self.program.append(&mut instrs);
+                    Ok(())
+                } // _ => Err(ForestError::Unimplemented(
+                  //     "Variant is not implemented yet!".to_string(),
+                  // )),
             }
         } else {
             return Err(ForestError::EndedWithoutHalting);
@@ -487,6 +534,10 @@ impl ForestRuntime {
         let inst = &self.program[self.program.len() - 1];
         println!("Current instruction: {}", inst);
         println!("Jumplists: {}", self.jumplist.len());
+        println!("Wordlist:");
+        self.wordlist
+            .iter()
+            .for_each(|w| println!("  {} | {}, {}", w.0, w.1[0], w.1[1]));
         Ok(())
     }
 }
