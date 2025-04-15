@@ -20,7 +20,7 @@ impl fmt::Display for ForestValue {
         match self {
             ForestValue::Nil => write!(f, "nil"),
             ForestValue::Int(i) => write!(f, "{}", i),
-            ForestValue::String(s) => write!(f, "{}", s),
+            ForestValue::String(s) => write!(f, "{:?}", s),
             ForestValue::Table(t) => {
                 let mut ret = String::new();
                 ret.push('{');
@@ -535,9 +535,11 @@ impl ForestRuntime {
         println!("Current instruction: {}", inst);
         println!("Jumplists: {}", self.jumplist.len());
         println!("Wordlist:");
-        self.wordlist
-            .iter()
-            .for_each(|w| println!("  {} | {}, {}", w.0, w.1[0], w.1[1]));
+        self.wordlist.iter().for_each(|w| {
+            print!("  {} | ", w.0);
+            w.1.iter().for_each(|i| print!("{} ", i));
+            println!();
+        });
         Ok(())
     }
 }
