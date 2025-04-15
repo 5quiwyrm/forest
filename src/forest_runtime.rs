@@ -152,6 +152,12 @@ impl ForestRuntime {
         }
     }
 
+    pub fn pushinstrs(&mut self, instrs: &[ForestInstruction]) -> () {
+        let mut revprogram: Vec<ForestInstruction> = instrs.to_vec();
+        revprogram.reverse();
+        self.program.append(&mut revprogram);
+    }
+
     pub fn step(&mut self) -> Result<(), ForestError> {
         #[allow(unused_variables)]
         let mut inst: ForestInstruction;
@@ -284,7 +290,16 @@ impl ForestRuntime {
                         Err(ForestError::Underflow)
                     } else {
                         let a = self.stack.pop().unwrap();
-                        print!("{}", a);
+                        match a {
+                            ForestValue::Nil => print!("nil"),
+                            ForestValue::Int(i) => print!("{}", i),
+                            ForestValue::String(s) => print!("{}", s),
+                            ForestValue::Table(t) => {
+                                print!("{{");
+                                t.iter().for_each(|p| print!("{} {} ", p.key, p.value));
+                                print!("}}");
+                            }
+                        }
                         Ok(())
                     }
                 }
@@ -508,14 +523,13 @@ impl ForestRuntime {
                 }
                 ForestInstruction::EndWord => Ok(()),
                 ForestInstruction::InvokeWord(name) => {
-                    let mut instrs = match self.wordlist.get(&name) {
+                    let instrs = match self.wordlist.get(&name) {
                         Some(v) => v.clone(),
                         None => {
                             return Err(ForestError::UseOfUndeclaredWord(name));
                         }
                     };
-                    instrs.reverse();
-                    self.program.append(&mut instrs);
+                    self.pushinstrs(&instrs);
                     Ok(())
                 } // _ => Err(ForestError::Unimplemented(
                   //     "Variant is not implemented yet!".to_string(),
