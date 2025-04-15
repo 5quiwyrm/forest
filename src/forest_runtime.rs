@@ -454,7 +454,7 @@ impl ForestRuntime {
                 ForestInstruction::Break => {
                     let mut layers = 1;
                     while layers != 0 {
-                        if let Some(mut inst) = self.program.pop() {
+                        if let Some(inst) = self.program.pop() {
                             match inst {
                                 ForestInstruction::Loop => {
                                     layers += 1;
@@ -489,4 +489,30 @@ impl ForestRuntime {
         println!("Jumplists: {}", self.jumplist.len());
         Ok(())
     }
+}
+
+#[macro_export]
+macro_rules! execute_runtime {
+    ($runtime_name: ident, $dump: expr) => {
+        loop {
+            if $dump {
+                match $runtime_name.dump() {
+                    Ok(_) => {}
+                    Err(_) => break,
+                }
+            }
+            match $runtime_name.step() {
+                Ok(_) => {}
+                Err(e) => {
+                    match e {
+                        ForestError::Halt => {}
+                        _ => {
+                            eprintln!("{}", e);
+                        }
+                    };
+                    break;
+                }
+            };
+        }
+    };
 }
