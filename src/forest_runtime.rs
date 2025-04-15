@@ -152,15 +152,13 @@ impl ForestRuntime {
         }
     }
 
-    pub fn pushinstrs(&mut self, instrs: &[ForestInstruction]) -> () {
+    pub fn push_instrs(&mut self, instrs: &[ForestInstruction]) -> () {
         let mut revprogram: Vec<ForestInstruction> = instrs.to_vec();
         revprogram.reverse();
         self.program.append(&mut revprogram);
     }
 
     pub fn step(&mut self) -> Result<(), ForestError> {
-        #[allow(unused_variables)]
-        let mut inst: ForestInstruction;
         if let Some(inst) = self.program.pop() {
             match inst {
                 ForestInstruction::Push(v) => {
@@ -529,7 +527,7 @@ impl ForestRuntime {
                             return Err(ForestError::UseOfUndeclaredWord(name));
                         }
                     };
-                    self.pushinstrs(&instrs);
+                    self.push_instrs(&instrs);
                     Ok(())
                 } // _ => Err(ForestError::Unimplemented(
                   //     "Variant is not implemented yet!".to_string(),
