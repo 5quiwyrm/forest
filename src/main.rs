@@ -74,3 +74,45 @@ fn branched_word() {
     ]);
     execute_runtime!(runtime, false);
 }
+
+#[test]
+fn recursive_word() {
+    use forest_runtime::ForestInstruction as fi;
+    use forest_runtime::ForestValue as fv;
+    let mut runtime = ForestRuntime::new(&[
+        fi::Push(fv::Int(0)),
+        fi::MakeWord("woop".to_string()),
+        fi::Push(fv::String("woop\n".to_string())),
+        fi::Print,
+        fi::InvokeWord("woop".to_string()),
+        fi::EndWord,
+        fi::InvokeWord("woop".to_string()),
+        fi::Exit,
+    ]);
+    execute_runtime!(runtime, false);
+}
+
+#[test]
+fn mutually_recursive_words() {
+    use forest_runtime::ForestInstruction as fi;
+    use forest_runtime::ForestValue as fv;
+    let mut runtime = ForestRuntime::new(&[
+        fi::Push(fv::Int(0)),
+        fi::MakeWord("hip".to_string()),
+        fi::Push(fv::String("hip ".to_string())),
+        fi::Print,
+        fi::InvokeWord("hooray".to_string()),
+        fi::EndWord,
+        fi::MakeWord("hooray".to_string()),
+        fi::Push(fv::String("hooray\n".to_string())),
+        fi::Print,
+        fi::InvokeWord("hip".to_string()),
+        fi::EndWord,
+        fi::MakeWord("hip hooray".to_string()),
+        fi::InvokeWord("hip".to_string()),
+        fi::EndWord,
+        fi::InvokeWord("hip hooray".to_string()),
+        fi::Exit,
+    ]);
+    execute_runtime!(runtime, false);
+}
