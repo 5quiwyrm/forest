@@ -34,7 +34,7 @@ fn loops() {
 }
 
 #[test]
-fn basicwords() {
+fn basic_words() {
     use forest_runtime::ForestInstruction as fi;
     use forest_runtime::ForestValue as fv;
     let mut runtime = ForestRuntime::new(&[
@@ -51,7 +51,7 @@ fn basicwords() {
 }
 
 #[test]
-fn branchedword() {
+fn branched_word() {
     use forest_runtime::ForestInstruction as fi;
     use forest_runtime::ForestValue as fv;
     let mut runtime = ForestRuntime::new(&[
