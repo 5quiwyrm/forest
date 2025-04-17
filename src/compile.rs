@@ -89,6 +89,7 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "]" => program.push(fi::LoopEnd),
                 "break" => program.push(fi::Break),
                 "swap" => program.push(fi::Swap),
+                "rot" => program.push(fi::Rotate),
                 "splat" => program.push(fi::Splat),
                 ":" => {
                     if let Some(tk) = tokens.next() {

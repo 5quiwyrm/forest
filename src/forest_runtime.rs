@@ -69,6 +69,7 @@ pub enum ForestInstruction {
     EndWord,
     InvokeWord(String),
     Swap,
+    Rotate,
     Splat,
     Exit,
 }
@@ -103,6 +104,7 @@ impl fmt::Display for ForestInstruction {
             Self::EndWord => write!(f, "EndWord"),
             Self::InvokeWord(w) => write!(f, "InvokeWord {}", w),
             Self::Swap => write!(f, "Swap"),
+            Self::Rotate => write!(f, "Rotate"),
             Self::Splat => write!(f, "Splat"),
             Self::Exit => write!(f, "Exit"),
         }
@@ -463,6 +465,19 @@ impl ForestRuntime {
                         let b = self.stack.pop().unwrap();
                         self.stack.push(a);
                         self.stack.push(b);
+                        Ok(())
+                    }
+                }
+                ForestInstruction::Rotate => {
+                    if self.stack.len() < 3 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let a = self.stack.pop().unwrap();
+                        let b = self.stack.pop().unwrap();
+                        let c = self.stack.pop().unwrap();
+                        self.stack.push(a);
+                        self.stack.push(b);
+                        self.stack.push(c);
                         Ok(())
                     }
                 }
