@@ -28,6 +28,7 @@ pub fn unescape(escaped: &str) -> String {
         .replace("\\t", "\t")
         .replace("\\\\", "\\")
         .replace("\\\"", "\"")
+        .replace("\\s", " ")
 }
 
 pub fn parse_string(inpt: &str) -> Option<fi> {
@@ -35,6 +36,7 @@ pub fn parse_string(inpt: &str) -> Option<fi> {
         && inpt.chars().nth(0).unwrap() == '\"'
         && inpt.chars().nth_back(0).unwrap() == '\"'
     {
+        println!("String detected: {inpt}");
         Some(fi::Push(ForestValue::String(unescape(
             &inpt[1..(inpt.len() - 1)],
         ))))
