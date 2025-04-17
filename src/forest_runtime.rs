@@ -22,14 +22,18 @@ impl fmt::Display for ForestValue {
             ForestValue::Int(i) => write!(f, "{}", i),
             ForestValue::String(s) => write!(f, "{:?}", s),
             ForestValue::Table(t) => {
-                let mut ret = String::new();
-                ret.push('{');
-                for TablePair { key, value } in t {
-                    ret.push_str(format!("{} {} ", key, value).as_str());
+                if t.len() > 0 {
+                    let mut ret = String::new();
+                    ret.push('{');
+                    for TablePair { key, value } in t {
+                        ret.push_str(format!("{} {} ", key, value).as_str());
+                    }
+                    ret.pop();
+                    ret.push('}');
+                    write!(f, "{}", ret)
+                } else {
+                    write!(f, "{{}}")
                 }
-                ret.pop();
-                ret.push('}');
-                write!(f, "{}", ret)
             }
         }
     }
