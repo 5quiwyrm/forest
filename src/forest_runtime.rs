@@ -63,6 +63,7 @@ pub enum ForestInstruction {
     MakeWord(String),
     EndWord,
     InvokeWord(String),
+    Swap,
     Exit,
 }
 
@@ -94,6 +95,7 @@ impl fmt::Display for ForestInstruction {
             Self::MakeWord(w) => write!(f, "MakeWord {}", w),
             Self::EndWord => write!(f, "EndWord"),
             Self::InvokeWord(w) => write!(f, "InvokeWord {}", w),
+            Self::Swap => write!(f, "Swap"),
             Self::Exit => write!(f, "Exit"),
         }
     }
@@ -288,16 +290,7 @@ impl ForestRuntime {
                         Err(ForestError::Underflow)
                     } else {
                         let a = self.stack.pop().unwrap();
-                        match a {
-                            ForestValue::Nil => print!("nil"),
-                            ForestValue::Int(i) => print!("{}", i),
-                            ForestValue::String(s) => print!("{}", s),
-                            ForestValue::Table(t) => {
-                                print!("{{");
-                                t.iter().for_each(|p| print!("{} {} ", p.key, p.value));
-                                print!("}}");
-                            }
-                        }
+                        print!("{a}");
                         Ok(())
                     }
                 }
@@ -435,6 +428,17 @@ impl ForestRuntime {
                         } else {
                             self.stack.push(ForestValue::Nil);
                         }
+                        Ok(())
+                    }
+                }
+                ForestInstruction::Swap => {
+                    if self.stack.len() < 2 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let a = self.stack.pop().unwrap();
+                        let b = self.stack.pop().unwrap();
+                        self.stack.push(a);
+                        self.stack.push(b);
                         Ok(())
                     }
                 }

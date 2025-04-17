@@ -36,7 +36,6 @@ pub fn parse_string(inpt: &str) -> Option<fi> {
         && inpt.chars().nth(0).unwrap() == '\"'
         && inpt.chars().nth_back(0).unwrap() == '\"'
     {
-        println!("String detected: {inpt}");
         Some(fi::Push(ForestValue::String(unescape(
             &inpt[1..(inpt.len() - 1)],
         ))))
@@ -88,6 +87,7 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "[" => program.push(fi::Loop),
                 "]" => program.push(fi::LoopEnd),
                 "break" => program.push(fi::Break),
+                "swap" => program.push(fi::Swap),
                 ":" => {
                     if let Some(tk) = tokens.next() {
                         program.push(fi::MakeWord(tk.to_string()))
