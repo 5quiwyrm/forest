@@ -64,6 +64,7 @@ pub enum ForestInstruction {
     EndWord,
     InvokeWord(String),
     Swap,
+    Splat,
     Exit,
 }
 
@@ -96,6 +97,7 @@ impl fmt::Display for ForestInstruction {
             Self::EndWord => write!(f, "EndWord"),
             Self::InvokeWord(w) => write!(f, "InvokeWord {}", w),
             Self::Swap => write!(f, "Swap"),
+            Self::Splat => write!(f, "Splat"),
             Self::Exit => write!(f, "Exit"),
         }
     }
@@ -373,21 +375,13 @@ impl ForestRuntime {
                         Err(ForestError::Underflow)
                     } else {
                         let a = self.stack.pop().unwrap();
-                        if let ForestValue::Int(va) = a {
-                            let b = self.stack.pop().unwrap();
-                            if let ForestValue::Int(vb) = b {
-                                if va != 0 && vb != 0 {
-                                    self.stack.push(ForestValue::Int(1));
-                                } else {
-                                    self.stack.push(ForestValue::Nil);
-                                }
-                                Ok(())
-                            } else {
-                                Err(ForestError::TypeMismatch(b, ForestValue::Int(0)))
-                            }
+                        let b = self.stack.pop().unwrap();
+                        if a != ForestValue::Nil && b != ForestValue::Nil {
+                            self.stack.push(ForestValue::Int(1));
                         } else {
-                            Err(ForestError::TypeMismatch(a, ForestValue::Int(0)))
+                            self.stack.push(ForestValue::Nil);
                         }
+                        Ok(())
                     }
                 }
                 ForestInstruction::Or => {
@@ -396,7 +390,7 @@ impl ForestRuntime {
                     } else {
                         let a = self.stack.pop().unwrap();
                         let b = self.stack.pop().unwrap();
-                        if a != ForestValue::Int(0) || b != ForestValue::Int(0) {
+                        if a != ForestValue::Nil || b != ForestValue::Nil {
                             self.stack.push(ForestValue::Int(1));
                         } else {
                             self.stack.push(ForestValue::Nil);
