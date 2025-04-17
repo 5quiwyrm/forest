@@ -51,6 +51,7 @@ To push values onto the stack, simply write the value as a token.
 
 All values can be compared with =.
 All values can be duplicated with dup, and dropped with drop.
+All top 2 values can be swapped with swap.
 
 ## ints
 
@@ -75,6 +76,10 @@ To associate a value with a key, do:
 To get the keys in a map, do:
 `<map> keys`
 This pushes an table of keys onto the stack, not consuming the map.
+`<map> vals`
+This pushes an table of keys onto the stack, not consuming the map.
+`<map> splat`
+This pushes the values stored in a table onto the stack, consuming the map.
 
 Using str on a table simply returns a string of all the values in a table,
 wrapped in "{" and "}".
@@ -86,10 +91,10 @@ Note that there doesn't necessarily have to be anything in `if ifend`.
 If the top-most value on the stack is not nil, then the code in `if` and `ifend`
 is executed, else, it is not.
 
-The `and` `or` and `not` functions do what you would expect them to.
+The `&` `|` and `!` functions do what you would expect them to.
 
 ## Loops
-There is only one kind of loop in Forest, being the `loop loopend` loop.
-Nested `loop` loops are allowed, and loops are terminated by `loopend`.
-The `break` keyword can be used in a loop to skip until the matching `loopend`.
+There is only one kind of loop in Forest, being the `[ ]` loop.
+Nested `[ ]` loops are allowed, and loops are terminated by `]`.
+The `break` keyword can be used in a loop to skip until the matching `]`.
 
