@@ -19,11 +19,11 @@ fn main() -> Result<(), ()> {
         },
         None => {
             println!(
-                "
-                Welcome to the forest compiler!\n\
+                "\
+                Welcome to the forest compiler!\n\n\
                 info: Usage: forest [command] {{options}}\n\n\
-                Commands:\n\n\
-                  run  | run from source\n\
+                Commands:\n\
+                  run  | run from source\n\n\
                 Options:\n\
                   dump | dump stack during runtime\n\
                 "
