@@ -6,8 +6,7 @@ use std::env;
 use std::fs::File;
 use std::io::Read;
 
-fn main() -> i32 {
-    use forest_runtime::ForestInstruction::*;
+fn main() -> Result<(), ()> {
     let mut args = env::args();
     args.next().expect("Something went horribly wrong - there should be at least one argument being the name of the program");
     match args.next() {
@@ -15,7 +14,7 @@ fn main() -> i32 {
             "run" => {}
             s => {
                 eprintln!("Unknown option {s} - try running `forest`");
-                return 1;
+                return Err(());
             }
         },
         None => {
@@ -29,7 +28,7 @@ fn main() -> i32 {
                   dump | dump stack during runtime\n\
                 "
             );
-            return 0;
+            return Ok(());
         }
     }
     if let Some(filepath) = args.next() {
@@ -39,7 +38,7 @@ fn main() -> i32 {
                 Ok(_) => {}
                 Err(e) => {
                     eprintln!("Could not read file, reason: {e}");
-                    return 1;
+                    return Err(());
                 }
             };
             let instrs = compile(&program)
@@ -55,7 +54,7 @@ fn main() -> i32 {
                         true
                     } else {
                         eprintln!("Unknown option {o}");
-                        return 1;
+                        return Err(());
                     }
                 }
                 _ => false,
@@ -63,13 +62,13 @@ fn main() -> i32 {
             execute_runtime!(runtime, dump);
         } else {
             eprintln!("Cannot find {filepath} in current directory");
-            return 1;
+            return Err(());
         }
     } else {
         eprintln!("Please provide a file name!");
-        return 1;
+        return Err(());
     }
-    return 0;
+    Ok(())
 }
 
 #[test]
