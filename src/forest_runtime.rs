@@ -513,7 +513,7 @@ impl ForestRuntime {
                             }
                             instructions.push(inst);
                         } else {
-                            return Err(ForestError::UnbalancedLoopEnd);
+                            return Err(ForestError::UnbalancedWordEnd);
                         }
                     }
                     self.wordlist.insert(name, instructions);
