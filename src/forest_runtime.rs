@@ -51,6 +51,7 @@ pub enum ForestInstruction {
     Get,
     Associate,
     Keys,
+    Values,
     If,
     IfEnd,
     And,
@@ -84,6 +85,7 @@ impl fmt::Display for ForestInstruction {
             Self::Get => write!(f, "Get"),
             Self::Associate => write!(f, "Associate"),
             Self::Keys => write!(f, "Keys"),
+            Self::Values => write!(f, "Values"),
             Self::If => write!(f, "If"),
             Self::IfEnd => write!(f, "IfEnd"),
             Self::And => write!(f, "And"),
@@ -271,7 +273,7 @@ impl ForestRuntime {
                             let b = self.stack.pop().unwrap();
                             if let ForestValue::String(vb) = b {
                                 self.stack
-                                    .push(ForestValue::String(format!("{}{}", va, vb)));
+                                    .push(ForestValue::String(format!("{}{}", vb, va)));
                                 Ok(())
                             } else {
                                 Err(ForestError::TypeMismatch(
@@ -292,7 +294,10 @@ impl ForestRuntime {
                         Err(ForestError::Underflow)
                     } else {
                         let a = self.stack.pop().unwrap();
-                        print!("{a}");
+                        match a {
+                            ForestValue::String(s) => print!("{s}"),
+                            v => print!("{v}"),
+                        }
                         Ok(())
                     }
                 }
@@ -370,6 +375,27 @@ impl ForestRuntime {
                         }
                     }
                 }
+                ForestInstruction::Values => {
+                    if self.stack.len() < 1 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let table = self.stack.pop().unwrap();
+                        if let ForestValue::Table(t) = table {
+                            self.stack.push(ForestValue::Table(
+                                t.iter()
+                                    .enumerate()
+                                    .map(|(i, s)| TablePair {
+                                        key: ForestValue::Int(i as i64),
+                                        value: s.key.clone(),
+                                    })
+                                    .collect(),
+                            ));
+                            Ok(())
+                        } else {
+                            Err(ForestError::TypeMismatch(table, ForestValue::Table(vec![])))
+                        }
+                    }
+                }
                 ForestInstruction::And => {
                     if self.stack.len() < 2 {
                         Err(ForestError::Underflow)
@@ -434,6 +460,22 @@ impl ForestRuntime {
                         self.stack.push(a);
                         self.stack.push(b);
                         Ok(())
+                    }
+                }
+                ForestInstruction::Splat => {
+                    if self.stack.len() < 1 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let a = self.stack.pop().unwrap();
+                        if let ForestValue::Table(t) = a {
+                            t.iter()
+                                .map(|p| p.value.clone())
+                                .rev()
+                                .for_each(|p| self.stack.push(p));
+                            return Ok(());
+                        } else {
+                            return Err(ForestError::TypeMismatch(ForestValue::Table(vec![]), a));
+                        }
                     }
                 }
                 ForestInstruction::Exit => Err(ForestError::Halt),

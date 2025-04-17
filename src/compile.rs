@@ -78,6 +78,7 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "get" => program.push(fi::Get),
                 "assoc" => program.push(fi::Associate),
                 "keys" => program.push(fi::Keys),
+                "vals" => program.push(fi::Values),
                 "if" => program.push(fi::If),
                 "ifend" => program.push(fi::IfEnd),
                 "&" => program.push(fi::And),
@@ -88,6 +89,7 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "]" => program.push(fi::LoopEnd),
                 "break" => program.push(fi::Break),
                 "swap" => program.push(fi::Swap),
+                "splat" => program.push(fi::Splat),
                 ":" => {
                     if let Some(tk) = tokens.next() {
                         program.push(fi::MakeWord(tk.to_string()))
