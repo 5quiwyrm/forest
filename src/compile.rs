@@ -21,14 +21,23 @@ pub fn parse_number(inpt: &str) -> Option<fi> {
     }
 }
 
+pub fn unescape(escaped: &str) -> String {
+    escaped
+        .replace("\\r", "\r")
+        .replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\\\", "\\")
+        .replace("\\\"", "\"")
+}
+
 pub fn parse_string(inpt: &str) -> Option<fi> {
     if inpt.len() > 1
         && inpt.chars().nth(0).unwrap() == '\"'
         && inpt.chars().nth_back(0).unwrap() == '\"'
     {
-        Some(fi::Push(ForestValue::String(
-            inpt[1..(inpt.len() - 1)].to_string(),
-        )))
+        Some(fi::Push(ForestValue::String(unescape(
+            &inpt[1..(inpt.len() - 1)],
+        ))))
     } else {
         None
     }
