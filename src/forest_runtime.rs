@@ -349,7 +349,20 @@ impl ForestRuntime {
                         let table = self.stack.pop().unwrap();
                         if let ForestValue::Table(t) = table {
                             let mut tt = t;
-                            tt.push(TablePair { key, value });
+                            let mut replace_idx: Option<usize> = None;
+                            for (idx, TablePair { key: k, value: _ }) in tt.iter().enumerate() {
+                                if *k == key {
+                                    replace_idx = Some(idx);
+                                }
+                            }
+                            match replace_idx {
+                                Some(i) => {
+                                    tt[i].value = value.clone();
+                                }
+                                None => {
+                                    tt.push(TablePair { key, value });
+                                }
+                            }
                             self.stack.push(ForestValue::Table(tt));
                         } else {
                             return Err(ForestError::TypeMismatch(
