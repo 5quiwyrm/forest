@@ -1,4 +1,4 @@
-:: % -> mod -> temp temp mod / mod * temp swap - ;
+:: % -> __modulus -> __temp __temp __modulus / __modulus * __temp swap - ;
 
 12 -> n
 [
