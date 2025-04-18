@@ -43,9 +43,11 @@ To push values onto the stack, simply write the value as a token.
   - Also note that spaces are not allowed, instead, \s has to be used. <!--TODO: fix this-->
 - tables
   - ... <table> ...
-  - e.g.: ... {"nice" 69 "everything" 42} ...
+  - e.g.: ... {} ...
   - Note that tables can have any value (other than nil) as a key,
     and all values are valid (including nil).
+  - Note that table literals are not allowed, you have to declare an empty
+    table then populate it with `assoc`. <!--TODO: fix this-->
     Duplicate entries are not allowed.
   - Note that table declarations must have an even number of values in them.
 
