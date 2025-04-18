@@ -332,8 +332,7 @@ impl ForestRuntime {
                         if let ForestValue::Table(t) = forest_table {
                             self.stack.push(
                                 t.iter()
-                                    .filter(|s| s.key == key)
-                                    .nth(0)
+                                    .find(|s| s.key == key)
                                     .unwrap_or(&TablePair {
                                         key: ForestValue::Nil,
                                         value: ForestValue::Nil,
@@ -397,7 +396,7 @@ impl ForestRuntime {
                                     .enumerate()
                                     .map(|(i, s)| TablePair {
                                         key: ForestValue::Int(i as i64),
-                                        value: s.value.clone(),
+                                        value: s.key.clone(),
                                     })
                                     .collect(),
                             ));
@@ -418,7 +417,7 @@ impl ForestRuntime {
                                     .enumerate()
                                     .map(|(i, s)| TablePair {
                                         key: ForestValue::Int(i as i64),
-                                        value: s.key.clone(),
+                                        value: s.value.clone(),
                                     })
                                     .collect(),
                             ));
