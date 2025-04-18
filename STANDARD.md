@@ -18,6 +18,39 @@ piled onto each other like in a stack.
 
 ## Language standard
 
+### Words
+
+This is the quintessential concept in Forth. In Forest, they are implemented
+as macros. Essentially, when a word is invoked, the contents of the word are
+pushed onto the instruction stack, and the program executes by popping
+instructions off of that stack and interpreting the instructions.
+
+To declare a variable word, do:
+`: <name of word> <content of words> ;`
+Note that the spaces after `:` and before `;` are mandatory.
+
+To declare a constant word, do:
+`:: <name of word> <content of words> ;`
+Note that the spaces after `:` and before `;` are mandatory.
+Reassigning to a constant word will throw a runtime error.
+
+### Variables
+
+Variable definition takes the topmost value on the stack and assigns it to a
+name. Variables and words cannot share the same namespace, but defining a
+variable or a word will override the other.
+
+To declare a variable, do:
+`-> <name of variable>`
+This will consume the topmost value of the stack.
+
+To declare a constant, do:
+`=> <name of variable>`
+This will consume the topmost value of the stack.
+
+### Constants
+
+
 ### Types
 
 Values are pushed onto the stack, and these values have types.

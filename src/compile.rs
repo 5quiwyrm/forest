@@ -91,9 +91,30 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "swap" => program.push(fi::Swap),
                 "rot" => program.push(fi::Rotate),
                 "splat" => program.push(fi::Splat),
-                ":" => {
+                "::" => {
                     if let Some(tk) = tokens.next() {
                         program.push(fi::MakeWord(tk.to_string()))
+                    } else {
+                        return Err(ForestCompileError::OutOfBoundsWord);
+                    }
+                }
+                ":" => {
+                    if let Some(tk) = tokens.next() {
+                        program.push(fi::MakeWordVar(tk.to_string()))
+                    } else {
+                        return Err(ForestCompileError::OutOfBoundsWord);
+                    }
+                }
+                "=>" => {
+                    if let Some(tk) = tokens.next() {
+                        program.push(fi::Set(tk.to_string()))
+                    } else {
+                        return Err(ForestCompileError::OutOfBoundsWord);
+                    }
+                }
+                "->" => {
+                    if let Some(tk) = tokens.next() {
+                        program.push(fi::SetVar(tk.to_string()))
                     } else {
                         return Err(ForestCompileError::OutOfBoundsWord);
                     }

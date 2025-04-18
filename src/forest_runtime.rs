@@ -66,11 +66,14 @@ pub enum ForestInstruction {
     LoopEnd,
     Break,
     MakeWord(String),
+    MakeWordVar(String),
     EndWord,
     InvokeWord(String),
     Swap,
     Rotate,
     Splat,
+    Set(String),
+    SetVar(String),
     Exit,
 }
 
@@ -101,11 +104,14 @@ impl fmt::Display for ForestInstruction {
             Self::LoopEnd => write!(f, "LoopEnd"),
             Self::Break => write!(f, "Break"),
             Self::MakeWord(w) => write!(f, "MakeWord {}", w),
+            Self::MakeWordVar(w) => write!(f, "MakeWordVar {}", w),
             Self::EndWord => write!(f, "EndWord"),
             Self::InvokeWord(w) => write!(f, "InvokeWord {}", w),
             Self::Swap => write!(f, "Swap"),
             Self::Rotate => write!(f, "Rotate"),
             Self::Splat => write!(f, "Splat"),
+            Self::Set(s) => write!(f, "Set {s}"),
+            Self::SetVar(s) => write!(f, "SetVar {s}"),
             Self::Exit => write!(f, "Exit"),
         }
     }
@@ -122,6 +128,7 @@ pub enum ForestError {
     UnbalancedWordEnd,
     UseOfUndeclaredWord(String),
     Unimplemented(String),
+    ReassigningConstant(String),
 }
 
 impl fmt::Display for ForestError {
@@ -129,22 +136,28 @@ impl fmt::Display for ForestError {
         match self {
             Self::Halt => write!(f, "Halted!"),
             Self::Underflow => write!(f, "Underflow!"),
-            Self::TypeMismatch(v, t) => write!(f, "Expceted: {}, got {}", t, v),
+            Self::TypeMismatch(v, t) => write!(f, "Expceted: {t}, got {v}"),
             Self::UnbalancedIfEnd => write!(f, "Unbalanced IfEnd!"),
             Self::UnbalancedLoopEnd => write!(f, "Unbalanced LoopEnd!"),
             Self::EndedWithoutHalting => write!(f, "Program ended without halting!"),
             Self::UnbalancedWordEnd => write!(f, "Unbalanced WordEnd!"),
-            Self::UseOfUndeclaredWord(n) => write!(f, "Use of undeclared word {}!", n),
+            Self::UseOfUndeclaredWord(n) => write!(f, "Use of undeclared word {n}!"),
+            Self::ReassigningConstant(n) => write!(f, "Reassigning to constant {n}!"),
             Self::Unimplemented(feature) => write!(f, "{} is not implemented yet!", feature),
         }
     }
+}
+
+pub struct Word {
+    instructions: Vec<ForestInstruction>,
+    is_constant: bool,
 }
 
 pub struct ForestRuntime {
     stack: Vec<ForestValue>,
     program: Vec<ForestInstruction>,
     jumplist: Vec<Vec<ForestInstruction>>,
-    wordlist: HashMap<String, Vec<ForestInstruction>>,
+    wordlist: HashMap<String, Word>,
 }
 
 #[allow(dead_code)]
@@ -575,6 +588,9 @@ impl ForestRuntime {
                                 ForestInstruction::MakeWord(_) => {
                                     layers += 1;
                                 }
+                                ForestInstruction::MakeWordVar(_) => {
+                                    layers += 1;
+                                }
                                 ForestInstruction::EndWord => {
                                     layers -= 1;
                                     if layers == 0 {
@@ -588,22 +604,122 @@ impl ForestRuntime {
                             return Err(ForestError::UnbalancedWordEnd);
                         }
                     }
-                    self.wordlist.insert(name, instructions);
+                    match self.wordlist.get(&name) {
+                        Some(v) => {
+                            if v.is_constant {
+                                return Err(ForestError::ReassigningConstant(name));
+                            }
+                        }
+                        None => {}
+                    }
+                    self.wordlist.insert(
+                        name,
+                        Word {
+                            instructions,
+                            is_constant: true,
+                        },
+                    );
+                    Ok(())
+                }
+                ForestInstruction::MakeWordVar(name) => {
+                    let mut instructions: Vec<ForestInstruction> = Vec::new();
+                    let mut layers = 1;
+                    'read: loop {
+                        if let Some(inst) = self.program.pop() {
+                            match inst {
+                                ForestInstruction::MakeWord(_) => {
+                                    layers += 1;
+                                }
+                                ForestInstruction::MakeWordVar(_) => {
+                                    layers += 1;
+                                }
+                                ForestInstruction::EndWord => {
+                                    layers -= 1;
+                                    if layers == 0 {
+                                        break 'read;
+                                    }
+                                }
+                                _ => {}
+                            }
+                            instructions.push(inst);
+                        } else {
+                            return Err(ForestError::UnbalancedWordEnd);
+                        }
+                    }
+                    match self.wordlist.get(&name) {
+                        Some(v) => {
+                            if v.is_constant {
+                                return Err(ForestError::ReassigningConstant(name));
+                            }
+                        }
+                        None => {}
+                    }
+                    self.wordlist.insert(
+                        name,
+                        Word {
+                            instructions,
+                            is_constant: false,
+                        },
+                    );
                     Ok(())
                 }
                 ForestInstruction::EndWord => Ok(()),
                 ForestInstruction::InvokeWord(name) => {
                     let instrs = match self.wordlist.get(&name) {
-                        Some(v) => v.clone(),
+                        Some(v) => v.instructions.clone(),
                         None => {
                             return Err(ForestError::UseOfUndeclaredWord(name));
                         }
                     };
                     self.push_instrs(&instrs);
                     Ok(())
-                } // _ => Err(ForestError::Unimplemented(
-                  //     "Variant is not implemented yet!".to_string(),
-                  // )),
+                }
+                ForestInstruction::Set(name) => {
+                    if self.stack.len() < 1 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        match self.wordlist.get(&name) {
+                            Some(v) => {
+                                if v.is_constant {
+                                    return Err(ForestError::ReassigningConstant(name));
+                                }
+                            }
+                            None => {}
+                        }
+                        let v = self.stack.pop().unwrap();
+                        self.wordlist.insert(
+                            name,
+                            Word {
+                                instructions: vec![ForestInstruction::Push(v)],
+                                is_constant: true,
+                            },
+                        );
+                        Ok(())
+                    }
+                }
+                ForestInstruction::SetVar(name) => {
+                    if self.stack.len() < 1 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        match self.wordlist.get(&name) {
+                            Some(v) => {
+                                if v.is_constant {
+                                    return Err(ForestError::ReassigningConstant(name));
+                                }
+                            }
+                            None => {}
+                        }
+                        let v = self.stack.pop().unwrap();
+                        self.wordlist.insert(
+                            name,
+                            Word {
+                                instructions: vec![ForestInstruction::Push(v)],
+                                is_constant: false,
+                            },
+                        );
+                        Ok(())
+                    }
+                }
             }
         } else {
             return Err(ForestError::EndedWithoutHalting);
@@ -620,8 +736,12 @@ impl ForestRuntime {
         println!("Jumplists: {}", self.jumplist.len());
         println!("Wordlist:");
         self.wordlist.iter().for_each(|w| {
-            print!("  {} | ", w.0);
-            w.1.iter().for_each(|i| print!("{} ", i));
+            print!(
+                "  {} ({}) | ",
+                w.0,
+                if w.1.is_constant { "const" } else { "var" }
+            );
+            w.1.instructions.iter().for_each(|i| print!("{} ", i));
             println!();
         });
         Ok(())
