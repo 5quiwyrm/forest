@@ -62,6 +62,8 @@ pub enum ForestInstruction {
     Or,
     Not,
     Eq,
+    GreaterThan,
+    LessThan,
     Loop,
     LoopEnd,
     Break,
@@ -100,6 +102,8 @@ impl fmt::Display for ForestInstruction {
             Self::Or => write!(f, "Or"),
             Self::Not => write!(f, "Not"),
             Self::Eq => write!(f, "Eq"),
+            Self::GreaterThan => write!(f, "GreaterThan"),
+            Self::LessThan => write!(f, "LessThan"),
             Self::Loop => write!(f, "Loop"),
             Self::LoopEnd => write!(f, "LoopEnd"),
             Self::Break => write!(f, "Break"),
@@ -480,6 +484,50 @@ impl ForestRuntime {
                             self.stack.push(ForestValue::Nil);
                         }
                         Ok(())
+                    }
+                }
+                ForestInstruction::GreaterThan => {
+                    if self.stack.len() < 2 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let va = self.stack.pop().unwrap();
+                        let vb = self.stack.pop().unwrap();
+                        if let ForestValue::Int(a) = va {
+                            if let ForestValue::Int(b) = vb {
+                                if b > a {
+                                    self.stack.push(ForestValue::Int(1));
+                                } else {
+                                    self.stack.push(ForestValue::Nil);
+                                }
+                                Ok(())
+                            } else {
+                                Err(ForestError::TypeMismatch(va, ForestValue::Int(1)))
+                            }
+                        } else {
+                            Err(ForestError::TypeMismatch(vb, ForestValue::Int(1)))
+                        }
+                    }
+                }
+                ForestInstruction::LessThan => {
+                    if self.stack.len() < 2 {
+                        Err(ForestError::Underflow)
+                    } else {
+                        let va = self.stack.pop().unwrap();
+                        let vb = self.stack.pop().unwrap();
+                        if let ForestValue::Int(a) = va {
+                            if let ForestValue::Int(b) = vb {
+                                if b < a {
+                                    self.stack.push(ForestValue::Int(1));
+                                } else {
+                                    self.stack.push(ForestValue::Nil);
+                                }
+                                Ok(())
+                            } else {
+                                Err(ForestError::TypeMismatch(va, ForestValue::Int(1)))
+                            }
+                        } else {
+                            Err(ForestError::TypeMismatch(vb, ForestValue::Int(1)))
+                        }
                     }
                 }
                 ForestInstruction::Swap => {

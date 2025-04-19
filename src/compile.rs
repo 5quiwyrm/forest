@@ -85,6 +85,8 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "|" => program.push(fi::Or),
                 "!" => program.push(fi::Not),
                 "=" => program.push(fi::Eq),
+                ">" => program.push(fi::GreaterThan),
+                "<" => program.push(fi::LessThan),
                 "[" => program.push(fi::Loop),
                 "]" => program.push(fi::LoopEnd),
                 "break" => program.push(fi::Break),
