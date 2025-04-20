@@ -93,6 +93,7 @@ pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
                 "swap" => program.push(fi::Swap),
                 "rot" => program.push(fi::Rotate),
                 "splat" => program.push(fi::Splat),
+                "include" => program.push(fi::Include),
                 "::" => {
                     if let Some(tk) = tokens.next() {
                         program.push(fi::MakeWord(tk.to_string()))

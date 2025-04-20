@@ -133,3 +133,13 @@ There is only one kind of loop in Forest, being the `[ ]` loop.
 Nested `[ ]` loops are allowed, and loops are terminated by `]`.
 The `break` keyword can be used in a loop to skip until the matching `]`.
 
+## Including other files
+
+To include a file, push the path to the file onto the stack, then use the
+`include` builtin instruction.
+
+Example:
+`"./libfrt/std.frt" include`
+
+This will append the contents of the file onto your file.
+Note that any errors in the included file will be propagated into your file.

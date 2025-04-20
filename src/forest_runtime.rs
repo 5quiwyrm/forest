@@ -1,5 +1,9 @@
+use crate::compile::ForestCompileError;
+use crate::compile::compile;
 use std::collections::HashMap;
 use std::fmt;
+use std::fs::File;
+use std::io::Read;
 
 #[derive(PartialEq, Clone)]
 pub struct TablePair {
@@ -76,6 +80,7 @@ pub enum ForestInstruction {
     Splat,
     Set(String),
     SetVar(String),
+    Include,
     Exit,
 }
 
@@ -116,6 +121,7 @@ impl fmt::Display for ForestInstruction {
             Self::Splat => write!(f, "Splat"),
             Self::Set(s) => write!(f, "Set {s}"),
             Self::SetVar(s) => write!(f, "SetVar {s}"),
+            Self::Include => write!(f, "Include"),
             Self::Exit => write!(f, "Exit"),
         }
     }
@@ -133,6 +139,9 @@ pub enum ForestError {
     UseOfUndeclaredWord(String),
     Unimplemented(String),
     ReassigningConstant(String),
+    FileNotFound,
+    ErrorReadingFile,
+    IncludeCompileError(ForestCompileError),
 }
 
 impl fmt::Display for ForestError {
@@ -147,7 +156,10 @@ impl fmt::Display for ForestError {
             Self::UnbalancedWordEnd => write!(f, "Unbalanced WordEnd!"),
             Self::UseOfUndeclaredWord(n) => write!(f, "Use of undeclared word {n}!"),
             Self::ReassigningConstant(n) => write!(f, "Reassigning to constant {n}!"),
-            Self::Unimplemented(feature) => write!(f, "{} is not implemented yet!", feature),
+            Self::Unimplemented(feature) => write!(f, "{feature} is not implemented yet!"),
+            Self::FileNotFound => write!(f, "File could not be found in the current directory!"),
+            Self::ErrorReadingFile => write!(f, "Error reading file!"),
+            Self::IncludeCompileError(e) => write!(f, "Error while including, reason:\n> {e}"),
         }
     }
 }
@@ -766,6 +778,42 @@ impl ForestRuntime {
                         );
                         Ok(())
                     }
+                }
+                ForestInstruction::Include => {
+                    let filename = match self.stack.pop() {
+                        Some(s) => match s {
+                            ForestValue::String(v) => v,
+                            _ => {
+                                return Err(ForestError::TypeMismatch(
+                                    s,
+                                    ForestValue::String("".to_string()),
+                                ));
+                            }
+                        },
+                        None => return Err(ForestError::Underflow),
+                    };
+                    let mut file = match File::open(&filename) {
+                        Ok(f) => f,
+                        Err(e) => {
+                            eprintln!("Could not find file, reason: {e}");
+                            return Err(ForestError::FileNotFound);
+                        }
+                    };
+                    let mut includeprogram = String::new();
+                    match file.read_to_string(&mut includeprogram) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            eprintln!("Could not read file, reason: {e}");
+                            return Err(ForestError::ErrorReadingFile);
+                        }
+                    };
+                    match compile(&includeprogram) {
+                        Ok(p) => self.push_instrs(&p),
+                        Err(e) => {
+                            return Err(ForestError::IncludeCompileError(e));
+                        }
+                    };
+                    Ok(())
                 }
             }
         } else {
