@@ -60,7 +60,22 @@ fn parse_table(inpt: &str) -> Option<fi> {
 }
 
 pub fn compile(programstr: &str) -> Result<Vec<fi>, ForestCompileError> {
-    let mut tokens = programstr.split_whitespace();
+    let mut wrapped = false;
+    let mut escaping = false;
+    let mut tokens = programstr
+        .split(|c: char| {
+            if c == '"' && !escaping {
+                wrapped = !wrapped;
+            }
+            if escaping {
+                escaping = false;
+            }
+            if c == '\\' {
+                escaping = true;
+            }
+            c.is_whitespace() && !wrapped
+        })
+        .filter(|s| s.len() != 0);
     let mut program: Vec<fi> = Vec::new();
     'compilation: loop {
         if let Some(tk) = tokens.next() {
