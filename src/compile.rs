@@ -14,24 +14,23 @@ impl fmt::Display for ForestCompileError {
     }
 }
 
-pub fn parse_number(inpt: &str) -> Option<fi> {
+fn parse_number(inpt: &str) -> Option<fi> {
     match inpt.parse::<i64>() {
         Ok(i) => Some(fi::Push(ForestValue::Int(i))),
         Err(_) => None,
     }
 }
 
-pub fn unescape(escaped: &str) -> String {
+fn unescape(escaped: &str) -> String {
     escaped
         .replace("\\r", "\r")
         .replace("\\n", "\n")
         .replace("\\t", "\t")
         .replace("\\\\", "\\")
         .replace("\\\"", "\"")
-        .replace("\\s", " ")
 }
 
-pub fn parse_string(inpt: &str) -> Option<fi> {
+fn parse_string(inpt: &str) -> Option<fi> {
     if inpt.len() > 1
         && inpt.chars().nth(0).unwrap() == '\"'
         && inpt.chars().nth_back(0).unwrap() == '\"'
@@ -44,7 +43,7 @@ pub fn parse_string(inpt: &str) -> Option<fi> {
     }
 }
 
-pub fn parse_nil(inpt: &str) -> Option<fi> {
+fn parse_nil(inpt: &str) -> Option<fi> {
     if inpt == "nil" {
         Some(fi::Push(ForestValue::Nil))
     } else {
@@ -52,7 +51,7 @@ pub fn parse_nil(inpt: &str) -> Option<fi> {
     }
 }
 
-pub fn parse_table(inpt: &str) -> Option<fi> {
+fn parse_table(inpt: &str) -> Option<fi> {
     if inpt == "{}" {
         Some(fi::Push(ForestValue::Table(vec![])))
     } else {
