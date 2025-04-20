@@ -1,7 +1,7 @@
 91 -> test
 2 -> ctr
 
-:: % -> __modulus -> __temp __temp __modulus / __modulus * __temp swap - ;
+"./libfrt/std.frt" include
 
 [
 	ctr test =

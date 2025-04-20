@@ -1,4 +1,4 @@
-:: % -> __modulus -> __temp __temp __modulus / __modulus * __temp swap - ;
+"./libfrt/std.frt" include
 
 12 -> n
 [

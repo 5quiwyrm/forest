@@ -1,4 +1,4 @@
-:: println . "\n" . ;
+"./libfrt/std.frt" include
 
 1 -> a
 1 -> b
