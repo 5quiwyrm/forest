@@ -2,19 +2,19 @@
 	__temp __modulus / __modulus *
 	__temp swap -
 ;
-:: >= -> b -> a
-	a b >
-	a b =
+:: >= -> __b -> __a
+	__a __b >
+	__a __b =
 	|
 ;
-:: <= -> b -> a
-	a b <
-	a b =
+:: <= -> __b -> __a
+	__a __b <
+	__a __b =
 	|
 ;
-:: ^ -> b -> a
-	a b ! &
-	a ! b &
+:: ^ -> __b -> __a
+	__a __b ! &
+	__a ! __b &
 	|
 ;
 :: println . "\n" . ;
